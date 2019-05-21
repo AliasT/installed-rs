@@ -31,7 +31,6 @@ impl Package {
         let mut children: Vec<Package> = Vec::new();
 
         for dep in &package.dependencies {
-            println!("{:?}", dep);
             let child = Package::new(format!("{}/node_modules/{}", parent, dep.0).as_str());
             if dep.0.len() > max_len {
                 max_len = dep.0.len()
@@ -102,7 +101,6 @@ fn main() {
         None => String::from("*"),
     };
 
-    println!("{}, {}", package_dir, module_name);
     Package::diff(package_dir.as_str(), module_name)
 }
 
