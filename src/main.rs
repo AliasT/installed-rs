@@ -14,37 +14,52 @@ use yansi::Paint;
 #[derive(Deserialize, Serialize, Debug, Clone)]
 struct Package {
     version: String,
+
     #[serde(default)]
     dependencies: HashMap<String, String>,
+
     #[serde(default)]
     devDependencies: HashMap<String, String>,
 }
 
-fn main() {}
+impl Package {
+    // TODO:
+    fn diff() {}
 
-// read package.json
-fn get_package(path: &str) -> std::io::Result<Package> {
-    // @TODO: relative path must start with ../
-    let path = format!("../{}/package.json", path);
-    let mut file = File::open(path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents);
+    // represetation of package
+    // read package.json
+    fn new(path: &str) -> std::io::Result<Package> {
+        let path = format!("{}/package.json", path);
+        let mut file = File::open(path)?;
+        let mut contents = String::new();
+        file.read_to_string(&mut contents);
 
-    let package: Package = serde_json::from_str(contents.as_str()).unwrap();
+        let package: Package = serde_json::from_str(contents.as_str()).unwrap();
 
-    Ok(package)
+        Ok(package)
+    }
+}
+
+fn main() {
+    // use current dir as default
+    let package_dir = match std::env::args().nth(1) {
+        Some(path) => path,
+        None => String::from("."),
+    };
+
+    println!("{:?}", Package::new(package_dir.as_str()).unwrap());
 }
 
 #[test]
 fn test_diff() -> std::io::Result<()> {
-    let parent = "scratch-3.0";
-    let package = get_package(parent)?;
+    let parent = "../scratch-3.0";
+    let package = Package::new(parent)?;
 
     let mut max_len = 0;
     let mut children: Vec<Package> = Vec::new();
 
     for dep in &package.dependencies {
-        let child = get_package(format!("{}/node_modules/{}", parent, dep.0).as_str())?;
+        let child = Package::new(format!("{}/node_modules/{}", parent, dep.0).as_str())?;
         if dep.0.len() > max_len {
             max_len = dep.0.len()
         }
