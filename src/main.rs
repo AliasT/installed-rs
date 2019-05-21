@@ -11,17 +11,21 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 use yansi::Paint;
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 struct Package {
     version: String,
+    #[serde(default)]
     dependencies: HashMap<String, String>,
+    #[serde(default)]
     devDependencies: HashMap<String, String>,
 }
 
 fn main() {}
 
 // read package.json
-fn get_package(path: String) -> std::io::Result<Package> {
+fn get_package(path: &str) -> std::io::Result<Package> {
+    // @TODO: relative path must start with ../
+    let path = format!("../{}/package.json", path);
     let mut file = File::open(path)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents);
@@ -33,14 +37,31 @@ fn get_package(path: String) -> std::io::Result<Package> {
 
 #[test]
 fn test_diff() -> std::io::Result<()> {
-    let path = String::from("../scratch-3.0/package.json");
-    let package = get_package(path)?;
-    for dep in package.dependencies {
-        println!(
-            "{}: {}",
-            Paint::green(dep.0),
-            Paint::blue(dep.1).underline()
-        );
+    let parent = "scratch-3.0";
+    let package = get_package(parent)?;
+
+    let mut max_len = 0;
+    let mut children: Vec<Package> = Vec::new();
+
+    for dep in &package.dependencies {
+        let child = get_package(format!("{}/node_modules/{}", parent, dep.0).as_str())?;
+        if dep.0.len() > max_len {
+            max_len = dep.0.len()
+        }
+        children.push(child);
     }
+
+    let mut i = 0;
+    for dep in &package.dependencies {
+        println!(
+            "{:>width$}: {:20} -->    {:10}",
+            Paint::green(dep.0),
+            Paint::blue(dep.1).underline(),
+            Paint::red(&children[i].version),
+            width = max_len,
+        );
+        i = i + 1;
+    }
+
     Ok(())
 }
