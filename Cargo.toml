@@ -2,6 +2,8 @@
 name = "installed-rs"
 version = "0.1.0"
 authors = ["chaixb <1481569358@qq.com>"]
+homepage = "https://github.com/chaixb/installed-rs"
+repository = "https://github.com/chaixb/installed-rs"
 edition = "2018"
 
 [dependencies]
