@@ -11,7 +11,7 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 use yansi::Paint;
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug)]
 struct Package {
     version: String,
 
@@ -24,59 +24,89 @@ struct Package {
 
 impl Package {
     // TODO:
-    fn diff() {}
+    fn diff(parent: &str, file: String) {
+        let package = Package::new(parent);
+
+        let mut max_len = 0;
+        let mut children: Vec<Package> = Vec::new();
+
+        for dep in &package.dependencies {
+            println!("{:?}", dep);
+            let child = Package::new(format!("{}/node_modules/{}", parent, dep.0).as_str());
+            if dep.0.len() > max_len {
+                max_len = dep.0.len()
+            }
+            children.push(child);
+        }
+
+        let mut i = 0;
+
+        fn output_line(name: String, declare: String, installed: String, max: usize) {
+            println!(
+                "{:>width$}: {:20} -->    {:10}",
+                Paint::green(name),
+                Paint::blue(declare).underline(),
+                Paint::red(installed),
+                width = max,
+            );
+        }
+
+        let mut flag = false;
+        for dep in &package.dependencies {
+            if file == String::from("*") {
+                output_line(
+                    dep.0.to_string(),
+                    dep.1.to_string(),
+                    children[i].version.clone(),
+                    max_len,
+                );
+                i = i + 1;
+            } else if (dep.0.to_string() == file && flag == false) {
+                flag = true;
+                output_line(
+                    dep.0.to_string(),
+                    dep.1.to_string(),
+                    children[i].version.clone(),
+                    0,
+                );
+            }
+        }
+    }
 
     // represetation of package
     // read package.json
-    fn new(path: &str) -> std::io::Result<Package> {
+    fn new(path: &str) -> Package {
         let path = format!("{}/package.json", path);
-        let mut file = File::open(path)?;
+        let mut file = File::open(path).unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents);
 
         let package: Package = serde_json::from_str(contents.as_str()).unwrap();
 
-        Ok(package)
+        package
     }
 }
 
 fn main() {
+    // command line args
     // use current dir as default
     let package_dir = match std::env::args().nth(1) {
         Some(path) => path,
         None => String::from("."),
     };
 
-    println!("{:?}", Package::new(package_dir.as_str()).unwrap());
+    let module_name = match std::env::args().nth(2) {
+        Some(file) => file,
+
+        // compare ass packages
+        None => String::from("*"),
+    };
+
+    println!("{}, {}", package_dir, module_name);
+    Package::diff(package_dir.as_str(), module_name)
 }
 
 #[test]
-fn test_diff() -> std::io::Result<()> {
-    let parent = "../scratch-3.0";
-    let package = Package::new(parent)?;
-
-    let mut max_len = 0;
-    let mut children: Vec<Package> = Vec::new();
-
-    for dep in &package.dependencies {
-        let child = Package::new(format!("{}/node_modules/{}", parent, dep.0).as_str())?;
-        if dep.0.len() > max_len {
-            max_len = dep.0.len()
-        }
-        children.push(child);
-    }
-
-    let mut i = 0;
-    for dep in &package.dependencies {
-        println!(
-            "{:>width$}: {:20} -->    {:10}",
-            Paint::green(dep.0),
-            Paint::blue(dep.1).underline(),
-            Paint::red(&children[i].version),
-            width = max_len,
-        );
-        i = i + 1;
-    }
-
-    Ok(())
+fn test_diff() {
+    Package::diff("../scratch-3.0", String::from(""))
 }
