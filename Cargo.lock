@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 [[package]]
 name = "installed-rs"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "serde 1.0.91 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.39 (registry+https://github.com/rust-lang/crates.io-index)",

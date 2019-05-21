@@ -1,6 +1,6 @@
 [package]
 name = "installed-rs"
-version = "0.1.1"
+version = "0.1.2"
 license = "MIT"
 description = "A tool to search node_modules installed version"
 authors = ["chaixb <1481569358@qq.com>"]

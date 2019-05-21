@@ -59,7 +59,6 @@ impl Package {
                     children[i].version.clone(),
                     max_len,
                 );
-                i = i + 1;
             } else if (dep.0.to_string() == file && flag == false) {
                 flag = true;
                 output_line(
@@ -69,6 +68,7 @@ impl Package {
                     0,
                 );
             }
+            i = i + 1;
         }
     }
 
