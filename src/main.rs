@@ -45,7 +45,7 @@ impl Package {
             println!(
                 "{:>width$}: {:20} -->    {:10}",
                 Paint::green(name),
-                Paint::blue(declare).underline(),
+                Paint::blue(declare),
                 Paint::red(installed),
                 width = max,
             );
@@ -107,5 +107,5 @@ fn main() {
 
 #[test]
 fn test_diff() {
-    Package::diff("../scratch-3.0", String::from(""))
+    Package::diff("../scratch-3.0", String::from("url"))
 }
