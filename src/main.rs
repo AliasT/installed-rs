@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use yansi::Paint;
 
 #[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 struct Package {
     version: String,
 
@@ -19,7 +20,7 @@ struct Package {
     dependencies: HashMap<String, String>,
 
     #[serde(default)]
-    devDependencies: HashMap<String, String>,
+    dev_dependencies: HashMap<String, String>,
 }
 
 impl Package {
@@ -59,7 +60,7 @@ impl Package {
                     children[i].version.clone(),
                     max_len,
                 );
-            } else if (dep.0.to_string() == file && flag == false) {
+            } else if dep.0.to_string() == file && flag == false {
                 flag = true;
                 output_line(
                     dep.0.to_string(),
@@ -76,9 +77,9 @@ impl Package {
     // read package.json
     fn new(path: &str) -> Package {
         let path = format!("{}/package.json", path);
-        let mut file = File::open(path).unwrap();
+        let mut file = File::open(path).expect("it is not a node module");
         let mut contents = String::new();
-        file.read_to_string(&mut contents);
+        file.read_to_string(&mut contents).unwrap();
 
         let package: Package = serde_json::from_str(contents.as_str()).unwrap();
 
